@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>调查问卷系统 - 问卷</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="styles.css" rel="stylesheet">
+    <link href="https://unpkg.com/survey-core@latest/defaultV2.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-4">
+        <nav class="bg-white shadow-sm rounded-xl mb-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-14">
+                    <a class="flex items-center text-secondary hover:text-primary transition-colors" href="/">
+                        <span class="text-lg font-semibold">调查问卷系统</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-sm p-4 sm:p-6">
+            <div id="surveyContainer" class="survey-container"></div>
+        </div>
+    </div>
+
+    <!-- 基础依赖 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/survey-jquery@latest/survey.jquery.min.js"></script>
+    
+    <!-- 问卷配置 -->
+    <script src="survey-config.js"></script>
+
+    <script>
+        // 设置问卷主题
+        Survey.StylesManager.applyTheme("defaultV2");
+        
+        // 创建Survey实例
+        const survey = new Survey.Model(surveyJson);
+
+        // 添加本地存储支持
+        survey.sendResultOnPageNext = true;
+        survey.currentPageNo = 0;
+
+        // 自动保存到localStorage
+        survey.onPartialSend.add(function(sender) {
+            window.localStorage.setItem("survey_results", JSON.stringify(sender.data));
+        });
+
+        // 加载已保存的数据
+        const savedData = window.localStorage.getItem("survey_results");
+        if (savedData) {
+            survey.data = JSON.parse(savedData);
+        }
+
+        // 处理完成事件
+        survey.onComplete.add(async function(sender, options) {
+            try {
+                // 准备提交数据
+                const responseData = {
+                    surveyTitle: survey.title,
+                    respondent: {
+                        name: sender.data.name,
+                        age: sender.data.age
+                    },
+                    answers: sender.data
+                };
+
+                // 发送数据到服务器
+                const response = await fetch('http://localhost:5000/api/responses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(responseData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('网络响应失败');
+                }
+
+                const result = await response.json();
+                console.log('提交成功:', result);
+
+                // 清除本地存储
+                window.localStorage.removeItem("survey_results");
+
+                // 显示成功消息
+                sender.completedHtml = `
+                    <div class='alert alert-success text-center'>
+                        <h4 class='alert-heading'>感谢您完成本次调查！</h4>
+                        <p class='mb-0'>您的反馈已成功保存。</p>
+                        <a href='/' class='btn btn-primary mt-3'>返回首页</a>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('提交失败:', error);
+                // 显示错误消息
+                sender.completedHtml = `
+                    <div class='alert alert-danger text-center'>
+                        <h4 class='alert-heading'>提交失败</h4>
+                        <p class='mb-0'>抱歉，提交数据时出现错误。请稍后重试。</p>
+                        <button onclick='window.location.reload()' class='btn btn-danger mt-3'>重试</button>
+                    </div>
+                `;
+            }
+        });
+
+        // 设置自定义CSS类
+        survey.css = {
+            root: "survey-container",
+            navigation: {
+                complete: "survey-button",
+                prev: "survey-button bg-gray-500 hover:bg-gray-600",
+                next: "survey-button",
+                start: "survey-button"
+            },
+            question: {
+                title: "survey-label",
+                description: "text-gray-500 text-sm mt-1",
+                input: "survey-input",
+                radiogroup: "space-y-2",
+                checkbox: "space-y-2",
+                dropdown: "survey-select",
+                comment: "survey-textarea",
+                rating: "flex space-x-2"
+            }
+        };
+
+        // 渲染调查问卷
+        $(document).ready(function() {
+            $("#surveyContainer").Survey({ model: survey });
+        });
+    </script>
+</body>
+</html>

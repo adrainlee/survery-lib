@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义问卷样式 */
+@layer components {
+  .survey-container {
+    @apply max-w-2xl mx-auto p-4;
+  }
+  
+  .survey-title {
+    @apply text-2xl font-bold text-secondary mb-4 text-center;
+  }
+  
+  .survey-description {
+    @apply text-gray-600 mb-6 text-center;
+  }
+  
+  .survey-button {
+    @apply bg-primary hover:bg-primary/90 text-white font-semibold py-2 px-6 rounded-lg transition-colors;
+  }
+  
+  .survey-input {
+    @apply w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none;
+  }
+  
+  .survey-checkbox {
+    @apply h-5 w-5 text-primary border-gray-300 rounded focus:ring-primary;
+  }
+  
+  .survey-radio {
+    @apply h-5 w-5 text-primary border-gray-300 focus:ring-primary;
+  }
+  
+  .survey-label {
+    @apply block text-gray-700 text-sm font-medium mb-2;
+  }
+  
+  .survey-select {
+    @apply w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none;
+  }
+  
+  .survey-textarea {
+    @apply w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none min-h-[100px];
+  }
+}
+
+/* SurveyJS 覆盖样式 */
+.sv-root-modern {
+  @apply w-full max-w-2xl mx-auto;
+}
+
+.sv-container-modern {
+  @apply p-0;
+}
+
+.sv-body__timer {
+  @apply text-sm text-gray-600;
+}
+
+.sv-footer {
+  @apply mt-6 flex justify-between items-center;
+}
+
+.sv-btn {
+  @apply survey-button;
+}
+
+.sv-progress {
+  @apply mb-6;
+}
+
+.sv-progress__bar {
+  @apply bg-primary;
+}
+
+/* 移动端优化 */
+@media (max-width: 640px) {
+  .survey-title {
+    @apply text-xl;
+  }
+  
+  .survey-description {
+    @apply text-sm;
+  }
+  
+  .survey-button {
+    @apply py-1.5 px-4 text-sm;
+  }
+  
+  .sv-footer {
+    @apply mt-4;
+  }
+}
